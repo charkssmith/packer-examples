@@ -61,5 +61,5 @@ variable "output_directory" {
 
 variable "output_vagrant_directory" {
   type    = string
-  default = ""
+  default = "/Users/charliesmith/Parallels"
 }

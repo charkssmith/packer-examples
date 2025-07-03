@@ -1,12 +1,12 @@
 locals {
-  output_dir         = var.output_directory == "" ? "out" : var.output_directory
+  output_dir         = var.output_directory == "" ? "sds-client-win11" : var.output_directory
   vagrant_output_dir = var.output_vagrant_directory == "" ? "${path.root}/box/${local.machine_name}.box" : "${var.output_vagrant_directory}/box/${local.machine_name}.box"
 
   boot_command = length(var.boot_command) == 0 ? [
     "<wait>"
   ] : var.boot_command
 
-  machine_name = var.machine_name == "" ? "Windows 11 ARM64" : var.machine_name
+  machine_name = var.machine_name == "" ? "sds-client-win11" : var.machine_name
   addons       = join(",", var.addons)
 }
 
@@ -19,6 +19,8 @@ source "parallels-iso" "image" {
     ["set", "{{ .Name }}", "--efi-secure-boot", "off"],
     ["set", "{{ .Name }}", "--device-add", "cdrom", "--image", "${path.root}/unattended.iso", "--connect"],
     ["set", "{{ .Name }}", "--device-add", "cdrom", "--image", "/Applications/Parallels Desktop.app/Contents/Resources/Tools/prl-tools-win-arm.iso", "--connect"],
+    ["set", "{{ .Name }}", "--shf-host-add", "royalts", "--path", "/Users/charliesmith/Library/CloudStorage/OneDrive-SequelDataSystems/Royal TS Documents"],
+    ["set", "{{ .Name }}", "--shf-host-add", "scratch", "--path", "/Users/charliesmith/Library/CloudStorage/OneDrive-SequelDataSystems/Scratch"],
   ]
   prlctl_version_file       = ".prlctl_version"
   boot_command              = local.boot_command
@@ -32,12 +34,12 @@ source "parallels-iso" "image" {
   output_directory          = local.output_dir
   shutdown_command          = "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\""
   shutdown_timeout          = var.shutdown_timeout
-  winrm_username            = "vagrant"
-  winrm_password            = "vagrant"
+  winrm_username            = "sds"
+  winrm_password            = "F0rg3tm3!"
   winrm_timeout             = "60m"
   ssh_port                  = 22
-  ssh_username              = "vagrant"
-  ssh_password              = "vagrant"
+  ssh_username              = "sds"
+  ssh_password              = "F0rg3tm3!"
   ssh_timeout               = "60m"
   ssh_wait_timeout          = "60m"
   ssh_clear_authorized_keys = true

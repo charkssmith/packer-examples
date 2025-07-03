@@ -28,6 +28,12 @@ build {
     except      = length(var.addons) > 0 ? [] : ["parallels-iso.image"]
   }
 
+  provisioner "file" {
+    source      = "/Users/charliesmith/Library/CloudStorage/OneDrive-SequelDataSystems/Software/VPN Clients/ARM"
+    destination = "c:\\parallels-tools\\VPN-Clients"
+    direction   = "upload"
+  }
+
   provisioner "windows-restart" {}
 
   provisioner "powershell" {

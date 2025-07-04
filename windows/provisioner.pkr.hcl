@@ -1,5 +1,5 @@
 locals {
-  output_dir         = var.output_directory == "" ? "sds-client-win11" : var.output_directory
+  output_dir = "${var.output_directory}/${var.machine_name}"
   vagrant_output_dir = var.output_vagrant_directory == "" ? "${path.root}/box/${local.machine_name}.box" : "${var.output_vagrant_directory}/box/${local.machine_name}.box"
 
   boot_command = length(var.boot_command) == 0 ? [

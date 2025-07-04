@@ -56,10 +56,10 @@ variable "create_vagrant_box" {
 
 variable "output_directory" {
   type    = string
-  default = ""
+  default = "/Users/charliesmith/Parallels"
 }
 
 variable "output_vagrant_directory" {
   type    = string
-  default = "/Users/charliesmith/Parallels"
+  default = ""
 }

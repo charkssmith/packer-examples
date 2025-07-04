@@ -41,10 +41,29 @@ build {
       "powershell -NoLogo -ExecutionPolicy RemoteSigned -File \"c:\\parallels-tools\\addons\\addons.ps1\" ${local.addons}"
     ]
 
-    elevated_password = "vagrant"
-    elevated_user     = "vagrant"
+    elevated_password = "F0rg3tm3!"
+    elevated_user     = "sds"
     execution_policy  = "remotesigned"
     except            = length(var.addons) > 0 ? [] : ["parallels-iso.image"]
+  }
+
+  //Copy over RoyalTS License and settings
+  provisioner "file" {
+    source      = "/Users/charliesmith/Library/CloudStorage/OneDrive-SequelDataSystems/Scratch/RoyalTS/code4ward"
+    destination = "C:\\Users\\sds\\AppData\\Roaming\\code4ward"
+    direction   = "upload"
+  }
+
+  provisioner "file" {
+    source      = "/Users/charliesmith/Library/CloudStorage/OneDrive-SequelDataSystems/Scratch/Notepad/config.xml"
+    destination = "C:/Windows/Temp/config.xml"
+    direction   = "upload"
+  }
+
+  provisioner "powershell" {
+    inline = [
+      "Move-Item -Path 'C:\\Windows\\Temp\\config.xml' -Destination 'C:\\Users\\sds\\AppData\\Roaming\\Notepad++\\config.xml' -Force"
+    ]
   }
 
   post-processor "vagrant" {

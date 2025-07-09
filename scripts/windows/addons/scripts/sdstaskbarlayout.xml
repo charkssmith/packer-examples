@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LayoutModificationTemplate xmlns="http://schemas.microsoft.com/Start/2014/LayoutModification" Version="1">
+  <DefaultLayoutOverride>
+    <LayoutOptions StartTileGroupCellWidth="6" />
+    <TaskbarLayout>
+        <TaskbarPinList>
+        <!-- Default Windows pins -->
+        <DesktopApp DesktopApplicationLinkPath="%APPDATA%\Microsoft\Windows\Start Menu\Programs\System Tools\Windows Explorer.lnk" />
+        <DesktopApp DesktopApplicationLinkPath="%APPDATA%\Microsoft\Windows\Start Menu\Programs\Microsoft Edge.lnk" />
+
+        <!-- Your extra apps -->
+        <DesktopApp DesktopApplicationLinkPath="C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Notepad++.lnk" />
+        <DesktopApp DesktopApplicationLinkPath="C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Royal TS V7.lnk" />
+        </TaskbarPinList>
+    </TaskbarLayout>
+  </DefaultLayoutOverride>
+</LayoutModificationTemplate>

@@ -1,0 +1,1 @@
+Import-StartLayout -LayoutPath "C:\parallels-tools\addons\scripts\sdstaskbarlayout.xml" -MountPath C:\

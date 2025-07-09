@@ -31,3 +31,4 @@ macos/packer-plugin-parallels
 **/*.ipsw
 **/*.old
 **/*.local*
+**/scripts/windows/answer_files/Autounattend.xml

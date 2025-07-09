@@ -10,8 +10,7 @@ Your Royal TS license key string.
 #>
 
 param(
-    [string]$DownloadUrl = "https://download.royalapps.com/royalts/royaltsinstaller_7.03.50701.0_arm64.msi",
-    [string]$LicenseKey  = "WG8T-CEHD-BRER-Z8BU-8RR2-2XYP-ECED-ZAY3-PU92-LGKD-D2K4-SXAG-AHA3"
+    [string]$DownloadUrl = "https://download.royalapps.com/royalts/royaltsinstaller_7.03.50701.0_arm64.msi"
 )
 
 $ErrorActionPreference = "Stop"

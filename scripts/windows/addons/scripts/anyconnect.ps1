@@ -1,35 +1,44 @@
 <#
 .SYNOPSIS
-Installs any Cisco AnyConnect MSI matching anyconnect-win-arm64-4*.msi in the target folder.
+Installs Cisco AnyConnect MSI from local shared folder.
+.DESCRIPTION
+- Searches X:\Cisco\ARM for anyconnect-win-arm64-*-core-vpn-predeploy-k9.msi
+- Installs using /quiet /norestart
 #>
 
 $ErrorActionPreference = "Stop"
 
-$installerDir = "C:\parallels-tools\VPN-Clients"
-
 Write-Host "------------------------------------------------------------"
 Write-Host " Cisco AnyConnect ARM64 Automated Installer"
 Write-Host "------------------------------------------------------------"
-Write-Host " Installer Search Directory: $installerDir"
+
+# 1️⃣ Define shared folder path
+$sharedFolder = "\\Mac\Software\Cisco\ARM"
+
+Write-Host " Installer Search Directory: $sharedFolder"
 Write-Host ""
 
-# Look for any matching MSI in the folder
-$installer = Get-ChildItem -Path $installerDir -Filter "anyconnect-win-arm64-4*.msi" -File | Select-Object -First 1
+if (!(Test-Path $sharedFolder)) {
+    Write-Error "ERROR: Shared folder $sharedFolder not found. Is the drive mapped correctly?"
+    exit 1
+}
 
-if (!$installer) {
-    Write-Error "ERROR: No anyconnect-win-arm64-4*.msi installer found in $installerDir."
+# 2️⃣ Locate the installer
+$installer = Get-ChildItem -Path $sharedFolder -Filter "anyconnect-win-arm64-*-core-vpn-predeploy-k9.msi" -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+
+if (-not $installer) {
+    Write-Error "ERROR: No matching AnyConnect MSI installer found in $sharedFolder."
     exit 1
 }
 
 $installerPath = $installer.FullName
-
 Write-Host "Found Installer: $installerPath"
 Write-Host ""
 
-# Define msiexec arguments
+# 3️⃣ Define MSI arguments
 $msiArgs = "/i `"$installerPath`" /quiet /norestart"
 
-# Launch the installer
+# 4️⃣ Install
 try {
     Write-Host "Starting silent installation..."
     $process = Start-Process -FilePath "msiexec.exe" -ArgumentList $msiArgs -Wait -PassThru -ErrorAction Stop

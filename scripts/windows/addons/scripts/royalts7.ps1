@@ -1,86 +1,63 @@
 <#
 .SYNOPSIS
-Downloads, installs, and licenses Royal TS ARM64 on Windows.
+Installs Royal TS ARM64 from a mapped drive.
 
-.PARAMETER DownloadUrl
-The full URL to the latest ARM64 MSI installer.
-
-.PARAMETER LicenseKey
-Your Royal TS license key string.
+.DESCRIPTION
+- Searches X:\RoyalTS\ARM for royaltsinstaller_*_arm64.msi
+- Installs it silently with /quiet /norestart
 #>
 
-param(
-    [string]$DownloadUrl = "https://download.royalapps.com/royalts/royaltsinstaller_7.03.50701.0_arm64.msi"
-)
-
 $ErrorActionPreference = "Stop"
-
-$installerDir  = "C:\parallels-tools\RoyalTS"
-$installerPath = Join-Path $installerDir "RoyalTS-ARM64-Installer.msi"
-
-# Create installer folder if missing
-if (!(Test-Path $installerDir)) {
-    Write-Host "Creating installer directory at $installerDir"
-    New-Item -Path $installerDir -ItemType Directory -Force | Out-Null
-}
 
 Write-Host "------------------------------------------------------------"
 Write-Host " Royal TS ARM64 Automated Installer"
 Write-Host "------------------------------------------------------------"
-Write-Host " Download URL : $DownloadUrl"
-Write-Host " Installer Dir: $installerDir"
+
+# 1️⃣ Define shared folder path
+$sharedFolder = "\\Mac\Software\RoyalTS\ARM"
+
+Write-Host " Installer Search Directory: $sharedFolder"
 Write-Host ""
 
-# Download the MSI
-Write-Host "Downloading Royal TS installer..."
-try {
-    Invoke-WebRequest -Uri $DownloadUrl -OutFile $installerPath -UseBasicParsing
-    Write-Host "Download completed: $installerPath"
-}
-catch {
-    Write-Error "ERROR: Failed to download Royal TS installer: $_"
+if (!(Test-Path $sharedFolder)) {
+    Write-Error "ERROR: Shared folder $sharedFolder not found. Is the drive mapped correctly?"
     exit 1
 }
 
-# Install the MSI silently
+# 2️⃣ Locate the installer
+$installer = Get-ChildItem -Path $sharedFolder -Filter "royaltsinstaller_*_arm64.msi" -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+
+if (-not $installer) {
+    Write-Error "ERROR: No royaltsinstaller_*_arm64.msi found in $sharedFolder."
+    exit 1
+}
+
+$installerPath = $installer.FullName
+Write-Host "Found Installer: $installerPath"
+Write-Host ""
+
+# 3️⃣ Define msiexec arguments
 $msiArgs = "/i `"$installerPath`" /quiet /norestart"
 
-Write-Host ""
-Write-Host "Installing Royal TS silently..."
+# 4️⃣ Run the installer
 try {
+    Write-Host "Starting silent installation..."
     $process = Start-Process -FilePath "msiexec.exe" -ArgumentList $msiArgs -Wait -PassThru -ErrorAction Stop
-    Write-Host "Installation finished with exit code: $($process.ExitCode)"
+
+    Write-Host ""
+    Write-Host "------------------------------------------------------------"
+    Write-Host " Installation completed with exit code: $($process.ExitCode)"
+    Write-Host "------------------------------------------------------------"
 
     if ($process.ExitCode -ne 0) {
-        Write-Error "ERROR: Royal TS installer failed."
+        Write-Error "ERROR: Royal TS installer failed. Exit code: $($process.ExitCode)"
         exit $process.ExitCode
     }
+
+    Write-Host "Royal TS installed successfully."
+    exit 0
 }
 catch {
     Write-Error "ERROR: Exception during installation: $_"
     exit 1
 }
-
-# # Register the license key
-# Write-Host ""
-# Write-Host "Attempting to register license..."
-# try {
-#     $royalExe = "${Env:ProgramFiles}\Royal TS V7\RoyalTS.exe"
-
-#     if (!(Test-Path $royalExe)) {
-#         Write-Error "ERROR: RoyalTS.exe not found at expected path: $royalExe"
-#         exit 1
-#     }
-
-#     $licenseArgs = "/registerlicense=$LicenseKey"
-
-#     Write-Host "Running: $royalExe $licenseArgs"
-#     Start-Process -FilePath $royalExe -ArgumentList $licenseArgs -Wait -PassThru -ErrorAction Stop
-
-#     Write-Host "Royal TS licensed successfully."
-#     exit 0
-# }
-# catch {
-#     Write-Error "ERROR: Exception while registering license: $_"
-#     exit 1
-# }

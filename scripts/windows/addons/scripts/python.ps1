@@ -1,50 +1,47 @@
 <#
 .SYNOPSIS
-Downloads and installs Python from a given URL, ensuring it's on PATH.
-
-.PARAMETER DownloadUrl
-The full URL to the Python ARM64 installer.
+Installs Python ARM64 from a local shared folder.
+.DESCRIPTION
+- Searches X:\NPP\ARM for python-*-arm64.exe
+- Installs with silent arguments
+- Adds Scripts folder to system PATH
 #>
 
-param(
-    [string]$DownloadUrl = "https://www.python.org/ftp/python/3.13.5/python-3.13.5-arm64.exe"
-)
-
 $ErrorActionPreference = "Stop"
-
-$installerDir = "C:\parallels-tools\Installers"
-$installerPath = Join-Path $installerDir "python-installer-arm64.exe"
 
 Write-Host "------------------------------------------------------------"
 Write-Host " Python ARM64 Automated Installer"
 Write-Host "------------------------------------------------------------"
-Write-Host " Download URL : $DownloadUrl"
-Write-Host " Installer Dir: $installerDir"
+
+# 1️⃣ Define shared folder path
+$sharedFolder = "\\Mac\Software\Python\ARM"
+
+Write-Host " Installer Search Directory: $sharedFolder"
 Write-Host ""
 
-# Ensure download directory exists
-if (!(Test-Path $installerDir)) {
-    Write-Host "Creating installer directory at $installerDir"
-    New-Item -Path $installerDir -ItemType Directory -Force | Out-Null
-}
-
-# Download installer
-Write-Host "Downloading Python installer..."
-try {
-    Invoke-WebRequest -Uri $DownloadUrl -OutFile $installerPath -UseBasicParsing
-    Write-Host "Download completed: $installerPath"
-}
-catch {
-    Write-Error "ERROR: Failed to download Python installer: $_"
+if (!(Test-Path $sharedFolder)) {
+    Write-Error "ERROR: Shared folder $sharedFolder not found. Is the drive mapped correctly?"
     exit 1
 }
 
-# Install silently
+# 2️⃣ Locate the installer
+$installer = Get-ChildItem -Path $sharedFolder -Filter "python-*-arm64.exe" -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+
+if (-not $installer) {
+    Write-Error "ERROR: No python-*-arm64.exe installer found in $sharedFolder."
+    exit 1
+}
+
+$installerPath = $installer.FullName
+Write-Host "Found Installer: $installerPath"
+Write-Host ""
+
+# 3️⃣ Define installer arguments
 $arguments = "/quiet InstallAllUsers=1 PrependPath=1 Include_test=0"
 
-Write-Host ""
-Write-Host "Installing Python silently..."
+# 4️⃣ Run the installer
 try {
+    Write-Host "Starting silent installation..."
     $process = Start-Process -FilePath $installerPath -ArgumentList $arguments -Wait -PassThru -ErrorAction Stop
 
     Write-Host ""
@@ -64,16 +61,15 @@ catch {
     exit 1
 }
 
-# Double-check PATH
+# 5️⃣ Ensure Python Scripts path is added to system PATH
 Write-Host ""
-Write-Host "Verifying PATH..."
+Write-Host "Verifying and updating PATH..."
 
 $expectedRoot = "C:\Program Files\Python"
 if (Test-Path $expectedRoot) {
     $foundVersions = Get-ChildItem -Directory $expectedRoot
     foreach ($versionDir in $foundVersions) {
         $scriptsPath = Join-Path $versionDir.FullName "Scripts"
-        Write-Host "Checking: $scriptsPath"
         if (!(Get-ChildItem Env:Path | Select-String -Pattern [regex]::Escape($scriptsPath))) {
             Write-Host "Adding $scriptsPath to system PATH"
             $oldPath = [Environment]::GetEnvironmentVariable("Path", "Machine")

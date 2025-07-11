@@ -1,56 +1,55 @@
 <#
 .SYNOPSIS
-Downloads and installs Notepad++ on Windows.
-
-.PARAMETER DownloadUrl
-The full URL to the Notepad++ installer EXE.
-
+Installs Notepad++ from a local shared folder.
+.DESCRIPTION
+- Searches X:\NPP\ARM for npp.*Installer.arm64.exe
+- Installs using /S
 #>
-
-param(
-    [string]$DownloadUrl = "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.8.2/npp.8.8.2.Installer.arm64.exe"
-)
 
 $ErrorActionPreference = "Stop"
 
-$installerDir  = "C:\parallels-tools\NotepadPP"
-$installerPath = Join-Path $installerDir "NotepadPP-Installer.exe"
-
-# Create installer folder if missing
-if (!(Test-Path $installerDir)) {
-    Write-Host "Creating installer directory at $installerDir"
-    New-Item -Path $installerDir -ItemType Directory -Force | Out-Null
-}
-
 Write-Host "------------------------------------------------------------"
-Write-Host " Notepad++ Automated Installer"
+Write-Host " Notepad++ ARM64 Automated Installer"
 Write-Host "------------------------------------------------------------"
-Write-Host " Download URL : $DownloadUrl"
-Write-Host " Installer Dir: $installerDir"
+
+# 1️⃣ Define shared folder path
+$sharedFolder = "\\Mac\Software\NPP\ARM"
+
+Write-Host " Installer Search Directory: $sharedFolder"
 Write-Host ""
 
-# Download the EXE
-Write-Host "Downloading Notepad++ installer..."
-try {
-    Invoke-WebRequest -Uri $DownloadUrl -OutFile $installerPath -UseBasicParsing
-    Write-Host "Download completed: $installerPath"
-}
-catch {
-    Write-Error "ERROR: Failed to download Notepad++ installer: $_"
+if (!(Test-Path $sharedFolder)) {
+    Write-Error "ERROR: Shared folder $sharedFolder not found. Is the drive mapped correctly?"
     exit 1
 }
 
-# Install the EXE silently
+# 2️⃣ Locate the installer
+$installer = Get-ChildItem -Path $sharedFolder -Filter "npp.*Installer.arm64.exe" -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+
+if (-not $installer) {
+    Write-Error "ERROR: No Notepad++ installer matching 'npp.*Installer.arm64.exe' found in $sharedFolder."
+    exit 1
+}
+
+$installerPath = $installer.FullName
+Write-Host "Found Installer: $installerPath"
+Write-Host ""
+
+# 3️⃣ Define installer arguments
 $exeArgs = "/S"
 
-Write-Host ""
-Write-Host "Installing Notepad++ silently..."
+# 4️⃣ Install
 try {
+    Write-Host "Starting silent installation..."
     $process = Start-Process -FilePath $installerPath -ArgumentList $exeArgs -Wait -PassThru -ErrorAction Stop
-    Write-Host "Installation finished with exit code: $($process.ExitCode)"
+
+    Write-Host ""
+    Write-Host "------------------------------------------------------------"
+    Write-Host " Installation completed with exit code: $($process.ExitCode)"
+    Write-Host "------------------------------------------------------------"
 
     if ($process.ExitCode -ne 0) {
-        Write-Error "ERROR: Notepad++ installer failed."
+        Write-Error "ERROR: Notepad++ installer failed. Exit code: $($process.ExitCode)"
         exit $process.ExitCode
     }
 
@@ -58,6 +57,6 @@ try {
     exit 0
 }
 catch {
-    Write-Error "ERROR: Exception during installation: $_"
+    Write-Error "ERROR: Exception occurred during installation: $_"
     exit 1
 }

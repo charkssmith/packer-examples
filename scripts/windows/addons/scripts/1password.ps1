@@ -1,40 +1,52 @@
 <#
 .SYNOPSIS
-Downloads and installs 1Password desktop client from a specified URL.
-.PARAMETER DownloadUrl
-The full URL to the 1Password ARM64 installer EXE.
+Installs 1Password desktop client from local shared drive.
+.DESCRIPTION
+- Searches X:\1Password\ARM for 1PasswordSetup-arm64-latest.exe
+- Installs using --silent
 #>
-
-param(
-    [string]$DownloadUrl = "https://downloads.1password.com/win/1PasswordSetup-arm64-latest.exe"
-)
 
 $ErrorActionPreference = "Stop"
 
-$installerDir = "C:\parallels-tools\Installers"
-$installerPath = Join-Path $installerDir "1password-installer-arm64.exe"
+Write-Host "------------------------------------------------------------"
+Write-Host " 1Password Desktop Installer from Shared Drive"
+Write-Host "------------------------------------------------------------"
 
-Write-Host "------------------------------------------------------------"
-Write-Host " 1Password Desktop Automated Installer"
-Write-Host "------------------------------------------------------------"
-Write-Host " Download URL : $DownloadUrl"
-Write-Host " Installer Dir: $installerDir"
-Write-Host ""
+# 1️⃣ Define source directory (mapped drive)
+$sourceDir = "\\Mac\Software\1Password\ARM"
+
+if (!(Test-Path $sourceDir)) {
+    Write-Error "ERROR: Shared folder $sourceDir not found. Is the drive mapped correctly?"
+    exit 1
+}
+
+# 2️⃣ Find installer matching pattern
+$installer = Get-ChildItem -Path $sourceDir -Filter "1PasswordSetup-arm64-latest.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+
+if (-not $installer) {
+    Write-Error "ERROR: No installer matching '1PasswordSetup-arm64-latest.exe' found in $sourceDir"
+    exit 1
+}
+
+Write-Host "Found installer: $($installer.FullName)"
+
+# 3️⃣ Copy installer to local VM (optional staging folder)
+$installerDir = "C:\parallels-tools\Installers"
 
 if (!(Test-Path $installerDir)) {
     New-Item -Path $installerDir -ItemType Directory -Force | Out-Null
 }
 
-Write-Host "Downloading 1Password installer..."
-Invoke-WebRequest -Uri $DownloadUrl -OutFile $installerPath -UseBasicParsing
-Write-Host "Download completed: $installerPath"
+$localInstallerPath = Join-Path -Path $installerDir -ChildPath "1PasswordInstaller-arm64.exe"
+Copy-Item -Path $installer.FullName -Destination $localInstallerPath -Force
 
-# ✅ Change silent argument to /S
+Write-Host "Copied installer to local staging: $localInstallerPath"
+
+# 4️⃣ Install silently
 $arguments = "--silent"
 
-Write-Host ""
-Write-Host "Installing 1Password silently..."
-$process = Start-Process -FilePath $installerPath -ArgumentList $arguments -Wait -PassThru
+Write-Host "Running silent installation..."
+$process = Start-Process -FilePath $localInstallerPath -ArgumentList $arguments -Wait -PassThru
 
 Write-Host ""
 Write-Host "------------------------------------------------------------"

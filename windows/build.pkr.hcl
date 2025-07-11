@@ -28,12 +28,6 @@ build {
     except      = length(var.addons) > 0 ? [] : ["parallels-iso.image"]
   }
 
-  provisioner "file" {
-    source      = "/Users/charliesmith/Library/CloudStorage/OneDrive-SequelDataSystems/Software/VPN Clients/ARM"
-    destination = "c:\\parallels-tools\\VPN-Clients"
-    direction   = "upload"
-  }
-
   provisioner "windows-restart" {}
 
   provisioner "powershell" {
@@ -47,22 +41,16 @@ build {
     except            = length(var.addons) > 0 ? [] : ["parallels-iso.image"]
   }
 
-  //Copy over RoyalTS License and settings
-  provisioner "file" {
-    source      = "/Users/charliesmith/Library/CloudStorage/OneDrive-SequelDataSystems/Scratch/RoyalTS/code4ward"
-    destination = "C:\\Users\\sds\\AppData\\Roaming\\code4ward"
-    direction   = "upload"
-  }
-
-  provisioner "file" {
-    source      = "/Users/charliesmith/Library/CloudStorage/OneDrive-SequelDataSystems/Scratch/Notepad/config.xml"
-    destination = "C:/Windows/Temp/config.xml"
-    direction   = "upload"
+  provisioner "powershell" {
+    inline = [
+      "Write-Host 'Copying RoyalTS license and settings...'",
+      "Copy-Item -Path '\\\\Mac\\Software\\RoyalTS\\ARM\\code4ward\\' -Destination 'C:\\Users\\sds\\AppData\\Roaming\\code4ward' -Recurse -Force"
+    ]
   }
 
   provisioner "powershell" {
     inline = [
-      "Move-Item -Path 'C:\\Windows\\Temp\\config.xml' -Destination 'C:\\Users\\sds\\AppData\\Roaming\\Notepad++\\config.xml' -Force"
+      "Copy-Item -Path '\\\\Mac\\Software\\NPP\\ARM\\config\\config.xml' -Destination 'C:\\Users\\sds\\AppData\\Roaming\\Notepad++\\config.xml' -Force"
     ]
   }
 

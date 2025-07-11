@@ -21,6 +21,7 @@ source "parallels-iso" "image" {
     ["set", "{{ .Name }}", "--device-add", "cdrom", "--image", "/Applications/Parallels Desktop.app/Contents/Resources/Tools/prl-tools-win-arm.iso", "--connect"],
     ["set", "{{ .Name }}", "--shf-host-add", "royalts", "--path", "/Users/charliesmith/Library/CloudStorage/OneDrive-SequelDataSystems/Royal TS Documents"],
     ["set", "{{ .Name }}", "--shf-host-add", "scratch", "--path", "/Users/charliesmith/Library/CloudStorage/OneDrive-SequelDataSystems/Scratch"],
+    ["set", "{{ .Name }}", "--shf-host-add", "software", "--path", "/Users/charliesmith/Library/CloudStorage/OneDrive-SequelDataSystems/Software"],
   ]
   prlctl_version_file       = ".prlctl_version"
   boot_command              = local.boot_command

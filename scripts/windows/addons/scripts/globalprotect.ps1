@@ -1,38 +1,47 @@
 <#
 .SYNOPSIS
-Installs any GlobalProtectARM64-*.msi found in the target folder.
+Installs GlobalProtect VPN MSI from local shared folder.
+.DESCRIPTION
+- Searches X:\Palo Alto\ARM for GlobalProtectARM64-*.msi
+- Installs using /quiet /norestart
 #>
 
 $ErrorActionPreference = "Stop"
 
-$installerDir = "C:\parallels-tools\VPN-Clients"
-
 Write-Host "------------------------------------------------------------"
 Write-Host " GlobalProtect VPN Automated Installer"
 Write-Host "------------------------------------------------------------"
-Write-Host " Installer Search Directory: $installerDir"
+
+# 1️⃣ Define shared folder path
+$sharedFolder = "\\Mac\Software\Palo Alto\ARM"
+
+Write-Host " Installer Search Directory: $sharedFolder"
 Write-Host ""
 
-# Look for any matching MSI in the folder
-$installer = Get-ChildItem -Path $installerDir -Filter "GlobalProtectARM64-*.msi" -File | Select-Object -First 1
+if (!(Test-Path $sharedFolder)) {
+    Write-Error "ERROR: Shared folder $sharedFolder not found. Is the drive mapped correctly?"
+    exit 1
+}
 
-if (!$installer) {
-    Write-Error "ERROR: No GlobalProtectARM64-*.msi installer found in $installerDir."
+# 2️⃣ Locate the installer
+$installer = Get-ChildItem -Path $sharedFolder -Filter "GlobalProtectARM64-*.msi" -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+
+if (-not $installer) {
+    Write-Error "ERROR: No GlobalProtectARM64-*.msi installer found in $sharedFolder."
     exit 1
 }
 
 $installerPath = $installer.FullName
-
 Write-Host "Found Installer: $installerPath"
 Write-Host ""
 
-# Define msiexec arguments
-$arguments = "/i `"$installerPath`" /quiet /norestart"
+# 3️⃣ Define MSI arguments
+$msiArgs = "/i `"$installerPath`" /quiet /norestart"
 
-# Launch the installer
+# 4️⃣ Install
 try {
     Write-Host "Starting silent installation..."
-    $process = Start-Process -FilePath "msiexec.exe" -ArgumentList $arguments -Wait -PassThru -ErrorAction Stop
+    $process = Start-Process -FilePath "msiexec.exe" -ArgumentList $msiArgs -Wait -PassThru -ErrorAction Stop
 
     Write-Host ""
     Write-Host "------------------------------------------------------------"
@@ -40,14 +49,18 @@ try {
     Write-Host "------------------------------------------------------------"
 
     if ($process.ExitCode -ne 0) {
-        Write-Error "ERROR: Installer failed. Exit code: $($process.ExitCode)"
+        Write-Error "ERROR: GlobalProtect installer failed. Exit code: $($process.ExitCode)"
         exit $process.ExitCode
     }
 
-    Write-Host "GlobalProtect VPN installed successfully!"
+    # ✅ Disable Credential Provider after successful install
+    Write-Host "Disabling GlobalProtect Credential Provider..."
+    Set-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\Credential Providers\{25CA8579-1BD8-469c-B9FC-6AC45A161C18}" -Name "Disabled" -Value 1
+
+    Write-Host "GlobalProtect VPN installed and credential provider disabled successfully!"
     exit 0
 }
 catch {
-    Write-Error "Exception occurred during installation: $_"
+    Write-Error "ERROR: Exception occurred during installation: $_"
     exit 1
 }

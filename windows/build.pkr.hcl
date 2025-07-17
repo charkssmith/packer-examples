@@ -53,6 +53,7 @@ build {
       "Copy-Item -Path '\\\\Mac\\Software\\NPP\\ARM\\config\\config.xml' -Destination 'C:\\Users\\sds\\AppData\\Roaming\\Notepad++\\config.xml' -Force"
     ]
   }
+  
 
   post-processor "vagrant" {
     compression_level    = 9

@@ -22,6 +22,7 @@ source "parallels-iso" "image" {
     ["set", "{{ .Name }}", "--shf-host-add", "royalts", "--path", "/Users/charliesmith/Library/CloudStorage/OneDrive-SequelDataSystems/Royal TS Documents"],
     ["set", "{{ .Name }}", "--shf-host-add", "scratch", "--path", "/Users/charliesmith/Library/CloudStorage/OneDrive-SequelDataSystems/Scratch"],
     ["set", "{{ .Name }}", "--shf-host-add", "software", "--path", "/Users/charliesmith/Library/CloudStorage/OneDrive-SequelDataSystems/Software"],
+    ["set", "{{ .Name }}", "--shf-host-add", "devolutions", "--path", "/Users/charliesmith/Library/CloudStorage/OneDrive-SequelDataSystems/Devolutions"],
   ]
   prlctl_version_file       = ".prlctl_version"
   boot_command              = local.boot_command
